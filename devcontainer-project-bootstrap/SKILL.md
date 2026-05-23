@@ -43,6 +43,7 @@ Do not ask about non-critical implementation details. Use the standards in `refe
 - Use non-root container users.
 - Create and use the deterministic `dev` user in the development container.
 - Mount Codex automatically as `../data/.codex:/home/dev/.codex:cached`.
+- Install the reusable skill repository automatically into `/home/dev/.codex/skills/fmarslan-ai-skills` from `https://github.com/fmarslan/ai-skills`.
 - Mount host git credentials into the container.
 - Mount the project root as the workspace folder.
 - Use Microsoft official Dev Container images whenever available.

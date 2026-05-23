@@ -4,6 +4,7 @@
   "service": "workspace",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "remoteUser": "dev",
+  "postCreateCommand": "mkdir -p /home/dev/.codex/skills && if [ -d /home/dev/.codex/skills/fmarslan-ai-skills/.git ]; then git -C /home/dev/.codex/skills/fmarslan-ai-skills pull --ff-only; elif [ ! -e /home/dev/.codex/skills/fmarslan-ai-skills ]; then git clone https://github.com/fmarslan/ai-skills /home/dev/.codex/skills/fmarslan-ai-skills; else echo 'Codex skills path exists but is not a git checkout: /home/dev/.codex/skills/fmarslan-ai-skills'; fi",
   "customizations": {
     "vscode": {
       "extensions": [

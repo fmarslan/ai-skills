@@ -16,6 +16,8 @@ The Dev Container mounts the project root as the workspace and stores local serv
 
 Codex state is mounted from `./data/.codex` into the container user's home directory. Host git credential mounts are added only for credential paths that exist on the host.
 
+The Dev Container installs the reusable Codex skills repository into `/home/dev/.codex/skills/fmarslan-ai-skills`. On the host this persists under `./data/.codex/skills/fmarslan-ai-skills`.
+
 ## Commands
 
 Replace these commands with the selected stack commands during generation:
