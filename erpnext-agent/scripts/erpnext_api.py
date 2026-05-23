@@ -12,6 +12,17 @@ import urllib.parse
 import urllib.request
 
 
+MUTATING_COMMANDS = {"create", "update", "delete"}
+READ_ONLY_METHODS = {
+    "frappe.auth.get_logged_user",
+    "frappe.client.get",
+    "frappe.client.get_count",
+    "frappe.client.get_list",
+    "frappe.client.get_value",
+    "frappe.desk.form.load.getdoctype",
+}
+
+
 def env(name: str) -> str | None:
     value = os.environ.get(name)
     return value if value else None
@@ -89,8 +100,76 @@ def print_json(value) -> None:
     print(json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True))
 
 
+def unwrap_records(value):
+    if isinstance(value, dict):
+        for key in ("data", "message"):
+            inner = value.get(key)
+            if isinstance(inner, list):
+                return inner
+            if isinstance(inner, dict):
+                return [inner]
+    if isinstance(value, list):
+        return value
+    if isinstance(value, dict):
+        return [value]
+    return []
+
+
+def markdown_cell(value) -> str:
+    if value is None:
+        text = ""
+    elif isinstance(value, (dict, list)):
+        text = json.dumps(value, ensure_ascii=False, sort_keys=True)
+    else:
+        text = str(value)
+    return text.replace("|", "\\|").replace("\n", "<br>")
+
+
+def print_table(value) -> None:
+    records = unwrap_records(value)
+    if not records:
+        print_json(value)
+        return
+
+    if not all(isinstance(record, dict) for record in records):
+        print("| value |")
+        print("| --- |")
+        for record in records:
+            print(f"| {markdown_cell(record)} |")
+        return
+
+    columns: list[str] = []
+    for record in records:
+        for key in record:
+            if key not in columns:
+                columns.append(key)
+
+    print("| " + " | ".join(markdown_cell(column) for column in columns) + " |")
+    print("| " + " | ".join("---" for _ in columns) + " |")
+    for record in records:
+        print("| " + " | ".join(markdown_cell(record.get(column)) for column in columns) + " |")
+
+
+def print_output(value, output_format: str) -> None:
+    if output_format == "json":
+        print_json(value)
+    else:
+        print_table(value)
+
+
+def require_yes(args: argparse.Namespace, reason: str) -> None:
+    if not getattr(args, "yes", False):
+        raise SystemExit(f"{reason}. Re-run with --yes after explicit user approval.")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Call ERPNext/Frappe REST APIs")
+    parser.add_argument(
+        "--output",
+        choices=["table", "json"],
+        default="table",
+        help="Output format. Defaults to Markdown table.",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("whoami")
@@ -111,20 +190,24 @@ def main() -> int:
     create_p = sub.add_parser("create")
     create_p.add_argument("doctype")
     create_p.add_argument("--data", required=True)
+    create_p.add_argument("--yes", action="store_true", help="Confirm this mutating operation is approved")
 
     update_p = sub.add_parser("update")
     update_p.add_argument("doctype")
     update_p.add_argument("name")
     update_p.add_argument("--data", required=True)
+    update_p.add_argument("--yes", action="store_true", help="Confirm this mutating operation is approved")
 
     delete_p = sub.add_parser("delete")
     delete_p.add_argument("doctype")
     delete_p.add_argument("name")
+    delete_p.add_argument("--yes", action="store_true", help="Confirm this mutating operation is approved")
 
     call_p = sub.add_parser("call")
     call_p.add_argument("method")
     call_p.add_argument("--data")
     call_p.add_argument("--http-method", choices=["GET", "POST"], default="POST")
+    call_p.add_argument("--yes", action="store_true", help="Confirm this method call is approved")
 
     args = parser.parse_args()
 
@@ -149,29 +232,34 @@ def main() -> int:
             f"/api/resource/{urllib.parse.quote(args.doctype, safe='')}/{urllib.parse.quote(args.name, safe='')}",
         )
     elif args.command == "create":
+        require_yes(args, "Creating ERPNext documents changes server data")
         result = request(
             "POST",
             f"/api/resource/{urllib.parse.quote(args.doctype, safe='')}",
             data=parse_json_arg(args.data, {}),
         )
     elif args.command == "update":
+        require_yes(args, "Updating ERPNext documents changes server data")
         result = request(
             "PUT",
             f"/api/resource/{urllib.parse.quote(args.doctype, safe='')}/{urllib.parse.quote(args.name, safe='')}",
             data=parse_json_arg(args.data, {}),
         )
     elif args.command == "delete":
+        require_yes(args, "Deleting ERPNext documents changes server data")
         result = request(
             "DELETE",
             f"/api/resource/{urllib.parse.quote(args.doctype, safe='')}/{urllib.parse.quote(args.name, safe='')}",
         )
     elif args.command == "call":
+        if args.http_method == "POST" or args.method not in READ_ONLY_METHODS:
+            require_yes(args, "Calling this ERPNext method may change server data")
         payload = parse_json_arg(args.data, {}) if args.data else None
         result = request(args.http_method, f"/api/method/{args.method}", data=payload)
     else:
         parser.error("unknown command")
 
-    print_json(result)
+    print_output(result, args.output)
     return 0
 
 
