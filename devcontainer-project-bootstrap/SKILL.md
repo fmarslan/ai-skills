@@ -1,0 +1,85 @@
+---
+name: devcontainer-project-bootstrap
+description: Use when initializing a new software project or standardizing an existing repository with a Docker Compose based Dev Container, Containerfile, VS Code configuration, documentation, environment files, local services, and deployment-ready structure. Acts as an interactive setup wizard that asks only critical architecture questions before generating files.
+---
+
+# Devcontainer Project Bootstrap
+
+Use this skill as a step-by-step wizard for project initialization and development environment bootstrap.
+
+## Wizard Behavior
+
+Ask one critical question at a time. Keep questions short and clear. Do not generate files until all critical decisions are complete.
+
+Critical decisions:
+
+- Programming language
+- Framework
+- Database
+- Queue system
+- Deployment target
+- Kubernetes usage
+- Monolith vs service architecture
+
+Do not ask about non-critical implementation details. Use the standards in `references/` automatically.
+
+## Required Workflow
+
+1. Inspect the target directory if it already exists.
+2. Ask missing critical architecture questions one at a time.
+3. Read the relevant references for the chosen stack and requested services.
+4. Verify current stable/LTS image versions from official sources before pinning any image tag.
+5. Generate `.devcontainer/Containerfile` so it creates and uses the deterministic non-root `dev` user.
+6. Generate a clean project structure using `Containerfile` and `compose.yaml`.
+7. Generate meaningful starter content for all required files.
+8. Validate JSON and YAML syntax when tools are available.
+9. Summarize generated files and any assumptions.
+
+## Mandatory Standards
+
+- Use Docker Compose based Dev Container setup for every generated project.
+- Use `.devcontainer/compose.yaml`, not `docker-compose.yml`.
+- Use `Containerfile`, never `Dockerfile`.
+- Use non-root container users.
+- Create and use the deterministic `dev` user in the development container.
+- Mount Codex automatically as `../data/.codex:/home/dev/.codex:cached`.
+- Mount host git credentials into the container.
+- Mount the project root as the workspace folder.
+- Use Microsoft official Dev Container images whenever available.
+- If no Microsoft image exists, use official upstream images.
+- Never use `:latest` tags.
+- Pin explicit stable/LTS versions.
+- Avoid beta, rc, edge, preview, dev, canary, and nightly versions.
+- Generate only `.env.example`, never `.env`.
+- Persist all local service data under `./data/<service-name>`.
+- Use official default ports unless the user explicitly overrides them.
+- Use healthchecks when useful.
+- Put all project source code under `src/`.
+
+## Reference Map
+
+- Decisions and wizard policy: `references/decision-policy.md`
+- Project layout: `references/project-structure-standard.md`
+- Image and version policy: `references/version-policy.md`
+- Dev Container rules: `references/devcontainer-rules.md`
+- Containerfile rules: `references/containerfile-rules.md`
+- VS Code rules: `references/vscode-rules.md`
+- Tooling by stack: `references/tooling-policy.md`
+- Predefined services: `references/default-services.md`
+- Non-predefined services: `references/dynamic-service-policy.md`
+- Environment files: `references/env-standard.md`
+- Documentation: `references/docs-standard.md`
+- Security: `references/security-standard.md`
+- Deployment: `references/deployment-standard.md`
+
+## Template Map
+
+Use templates from `assets/templates/` as starting points:
+
+- `docs/`: `DEVELOPMENT.md`, `CONTRIBUTING.md`, `DEPLOYMENT.md`, `ENVIRONMENT.md`
+- `vscode/`: `extensions.json`, `tasks.json`, `launch.json`
+- `devcontainer/`: `devcontainer.json`, `compose.yaml`, `Containerfile`
+- `infra/`: `compose.yaml` and optional `kube/` manifests
+- Root templates: `README.md`, `.env.example`, `.gitignore`, optional production `Containerfile`
+
+Adapt every template to the selected language, framework, services, ports, and deployment target before writing it into a project.

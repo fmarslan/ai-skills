@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/devcontainers/base:1-bookworm
+
+USER root
+
+RUN if ! id -u app >/dev/null 2>&1; then \
+      useradd --create-home --shell /bin/bash app; \
+    fi \
+    && chown -R app:app /home/app
+
+USER app

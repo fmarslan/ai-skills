@@ -1,0 +1,11 @@
+FROM mcr.microsoft.com/devcontainers/base:1-bookworm
+
+USER root
+
+RUN if ! id -u dev >/dev/null 2>&1; then \
+      useradd --create-home --shell /bin/bash dev; \
+    fi \
+    && mkdir -p /home/dev/.codex \
+    && chown -R dev:dev /home/dev
+
+USER dev
