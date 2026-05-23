@@ -29,11 +29,12 @@ Do not ask about non-critical implementation details. Use the standards in `refe
 2. Ask missing critical architecture questions one at a time.
 3. Read the relevant references for the chosen stack and requested services.
 4. Verify current stable/LTS image versions from official sources before pinning any image tag.
-5. Generate `.devcontainer/Containerfile` so it creates and uses the deterministic non-root `dev` user.
+5. Generate `.devcontainer/Containerfile` so the development user is aligned from `DEV_USERNAME`, `DEV_GROUPNAME`, `DEV_UID`, and `DEV_GID` without creating duplicate UID/GID entries.
 6. Generate a clean project structure using `Containerfile` and `compose.yaml`.
-7. Generate meaningful starter content for all required files.
-8. Validate JSON and YAML syntax when tools are available.
-9. Summarize generated files and any assumptions.
+7. During project generation, prepare host-side writable paths and `.devcontainer/.env` with `scripts/prepare-devcontainer-host.sh <project-root>` when the local host supports it. Do not generate project-local init scripts and do not rely on Dev Container lifecycle scripts for host preparation.
+8. Generate meaningful starter content for all required files.
+9. Validate JSON and YAML syntax when tools are available.
+10. Summarize generated files and any assumptions.
 
 ## Mandatory Standards
 
@@ -41,10 +42,11 @@ Do not ask about non-critical implementation details. Use the standards in `refe
 - Use `.devcontainer/compose.yaml`, not `docker-compose.yml`.
 - Use `Containerfile`, never `Dockerfile`.
 - Use non-root container users.
-- Create and use the deterministic `dev` user in the development container.
-- Mount Codex automatically as `../data/.codex:/home/dev/.codex:cached`.
-- Install the reusable skill repository automatically into `/home/dev/.codex/skills/fmarslan-ai-skills` from `https://github.com/fmarslan/ai-skills`.
-- Mount host git credentials into the container.
+- Support `DEV_USERNAME`, `DEV_GROUPNAME`, `DEV_UID`, and `DEV_GID` for host-aligned container users.
+- Default to `dev:dev 1000:1000`.
+- Mount Codex automatically as `../data/.codex:/home/${DEV_USERNAME:-dev}/.codex:cached`.
+- Install the reusable skill repository automatically into `/home/${DEV_USERNAME:-dev}/.codex/skills/fmarslan-ai-skills` from `https://github.com/fmarslan/ai-skills`.
+- Do not mount host secrets or credential directories automatically.
 - Mount the project root as the workspace folder.
 - Use Microsoft official Dev Container images whenever available.
 - If no Microsoft image exists, use official upstream images.
@@ -55,7 +57,8 @@ Do not ask about non-critical implementation details. Use the standards in `refe
 - Persist all local service data under `./data/<service-name>`.
 - Use official default ports unless the user explicitly overrides them.
 - Use healthchecks when useful.
-- Put all project source code under `src/`.
+- Put all stack-specific code, package manifests, lockfiles, and build/test configuration under `src/`.
+- Keep the repository root limited to standardized bootstrap folders and repository-level docs/config.
 
 ## Reference Map
 
@@ -80,6 +83,7 @@ Use templates from `assets/templates/` as starting points:
 - `docs/`: `DEVELOPMENT.md`, `CONTRIBUTING.md`, `DEPLOYMENT.md`, `ENVIRONMENT.md`
 - `vscode/`: `extensions.json`, `tasks.json`, `launch.json`
 - `devcontainer/`: `devcontainer.json`, `compose.yaml`, `Containerfile`
+- `devcontainer/`: optional `.env.example`
 - `infra/`: `compose.yaml` and optional `kube/` manifests
 - Root templates: `README.md`, `.env.example`, `.gitignore`, optional production `Containerfile`
 

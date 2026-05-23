@@ -16,7 +16,10 @@ Rules:
 - Keep root `README.md` concise and practical.
 - Document generated commands, ports, services, environment variables, and deployment assumptions.
 - Document how to open the Dev Container and how local data is persisted.
-- Document that application source code lives under `src/`.
+- Document that stack-specific code, package manifests, lockfiles, and build/test configuration live under `src/`.
+- Document that host-side Dev Container preparation is handled during project generation by the skill.
+- Explain that Linux bind mount permissions depend on UID/GID, not only username.
+- Explain that service data directories may be owned by service container users and should not always be chowned to the development user.
 
 Required content:
 

@@ -1,11 +1,48 @@
 FROM mcr.microsoft.com/devcontainers/base:1-bookworm
 
+ARG DEV_USERNAME=dev
+ARG DEV_GROUPNAME=dev
+ARG DEV_UID=1000
+ARG DEV_GID=1000
+
 USER root
 
-RUN if ! id -u dev >/dev/null 2>&1; then \
-      useradd --create-home --shell /bin/bash dev; \
-    fi \
-    && mkdir -p /home/dev/.codex \
-    && chown -R dev:dev /home/dev
+RUN set -eux; \
+    existing_group="$(getent group "${DEV_GID}" | cut -d: -f1 || true)"; \
+    if [ -n "${existing_group}" ]; then \
+      if [ "${existing_group}" != "${DEV_GROUPNAME}" ]; then \
+        if getent group "${DEV_GROUPNAME}" >/dev/null; then \
+          echo "Group name ${DEV_GROUPNAME} already exists with a different GID" >&2; \
+          exit 1; \
+        fi; \
+        groupmod -n "${DEV_GROUPNAME}" "${existing_group}"; \
+      fi; \
+    else \
+      if getent group "${DEV_GROUPNAME}" >/dev/null; then \
+        echo "Group ${DEV_GROUPNAME} exists with a different GID" >&2; \
+        exit 1; \
+      fi; \
+      groupadd --gid "${DEV_GID}" "${DEV_GROUPNAME}"; \
+    fi; \
+    existing_user="$(getent passwd "${DEV_UID}" | cut -d: -f1 || true)"; \
+    if [ -n "${existing_user}" ]; then \
+      if [ "${existing_user}" != "${DEV_USERNAME}" ]; then \
+        if id -u "${DEV_USERNAME}" >/dev/null 2>&1; then \
+          echo "User name ${DEV_USERNAME} already exists with a different UID" >&2; \
+          exit 1; \
+        fi; \
+        usermod --login "${DEV_USERNAME}" "${existing_user}"; \
+      fi; \
+      usermod --gid "${DEV_GID}" "${DEV_USERNAME}"; \
+      usermod --home "/home/${DEV_USERNAME}" --move-home "${DEV_USERNAME}" || usermod --home "/home/${DEV_USERNAME}" "${DEV_USERNAME}"; \
+    else \
+      if id -u "${DEV_USERNAME}" >/dev/null 2>&1; then \
+        echo "User ${DEV_USERNAME} exists with a different UID" >&2; \
+        exit 1; \
+      fi; \
+      useradd --uid "${DEV_UID}" --gid "${DEV_GID}" --create-home --home-dir "/home/${DEV_USERNAME}" --shell /bin/bash "${DEV_USERNAME}"; \
+    fi; \
+    mkdir -p "/home/${DEV_USERNAME}/.codex" "/home/${DEV_USERNAME}/.cache" "/home/${DEV_USERNAME}/.config"; \
+    chown -R "${DEV_UID}:${DEV_GID}" "/home/${DEV_USERNAME}"
 
-USER dev
+USER ${DEV_USERNAME}

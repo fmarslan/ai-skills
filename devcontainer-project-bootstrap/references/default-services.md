@@ -27,3 +27,7 @@ Rules:
 - Use official default ports unless explicitly overridden.
 - Use service names exactly as lowercase canonical names.
 - Add only requested or architecturally required services.
+- Create writable service data source directories before container startup.
+- Persist service data under `./data/<service-name>`.
+- Do not chown service-owned data directories to the development user unless the service image documentation says that UID/GID is expected.
+- Document service image UID/GID expectations when they matter. For example, RabbitMQ commonly runs with an internal service UID such as `999`; `data/rabbitmq` may need to match the RabbitMQ image, not the development user.

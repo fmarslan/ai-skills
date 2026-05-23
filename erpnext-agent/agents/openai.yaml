@@ -1,0 +1,4 @@
+interface:
+  display_name: "ERPNext Agent"
+  short_description: "Operate ERPNext with user-provided API access"
+  default_prompt: "Use $erpnext-agent to connect to my ERPNext site and complete the requested task safely."

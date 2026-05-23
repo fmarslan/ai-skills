@@ -4,7 +4,7 @@
   "service": "workspace",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "remoteUser": "dev",
-  "postCreateCommand": "mkdir -p /home/dev/.codex/skills && if [ -d /home/dev/.codex/skills/fmarslan-ai-skills/.git ]; then git -C /home/dev/.codex/skills/fmarslan-ai-skills pull --ff-only; elif [ ! -e /home/dev/.codex/skills/fmarslan-ai-skills ]; then git clone https://github.com/fmarslan/ai-skills /home/dev/.codex/skills/fmarslan-ai-skills; else echo 'Codex skills path exists but is not a git checkout: /home/dev/.codex/skills/fmarslan-ai-skills'; fi",
+  "postCreateCommand": "CODEx_HOME=\"/home/${DEV_USERNAME:-dev}/.codex\"; mkdir -p \"$CODEx_HOME/skills\"; if ! touch \"$CODEx_HOME/.write-test\" 2>/dev/null; then echo \"Codex directory is not writable: $CODEx_HOME\" >&2; echo \"Linux/WSL: run sudo chown -R \\\"${DEV_UID:-1000}:${DEV_GID:-1000}\\\" data/.codex from the project root.\" >&2; echo \"Windows/macOS: check Docker Desktop file sharing and mount path settings.\" >&2; exit 1; fi; rm -f \"$CODEx_HOME/.write-test\"; if [ -d \"$CODEx_HOME/skills/fmarslan-ai-skills/.git\" ]; then git -C \"$CODEx_HOME/skills/fmarslan-ai-skills\" pull --ff-only; elif [ ! -e \"$CODEx_HOME/skills/fmarslan-ai-skills\" ]; then git clone https://github.com/fmarslan/ai-skills \"$CODEx_HOME/skills/fmarslan-ai-skills\"; else echo \"Codex skills path exists but is not a git checkout: $CODEx_HOME/skills/fmarslan-ai-skills\"; fi",
   "customizations": {
     "vscode": {
       "extensions": [

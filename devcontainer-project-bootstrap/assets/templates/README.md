@@ -8,7 +8,7 @@ Open the repository in VS Code and choose `Dev Containers: Reopen in Container`.
 
 See `docs/DEVELOPMENT.md` for setup, commands, debugging, and local service details.
 
-Application source code lives under `src/`.
+Stack-specific code, package manifests, lockfiles, and build/test configuration live under `src/`.
 
 ## Environment
 

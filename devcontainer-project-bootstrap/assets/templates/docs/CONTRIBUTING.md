@@ -11,6 +11,6 @@
 
 - Keep dependencies minimal.
 - Prefer explicit configuration over hidden local setup.
-- Keep application source code under `src/`.
+- Keep stack-specific code, package manifests, lockfiles, and build/test configuration under `src/`.
 - Do not commit generated local data from `./data`.
 - Do not commit real secrets.

@@ -6,7 +6,8 @@ Security baseline:
 - Generate `.env.example`, not `.env`.
 - Add `.env` to `.gitignore`.
 - Use non-root container users.
-- Mount host git credentials read-only.
+- Do not mount host secrets or credential directories automatically.
+- Do not mount `~/.ssh`, `~/.gnupg`, `.git-credentials`, token files, cloud credentials, or password manager files unless the user explicitly asks for that exact mount.
 - Do not mount broad host directories.
 - Do not expose extra service ports.
 - Use official images and pinned stable tags.
