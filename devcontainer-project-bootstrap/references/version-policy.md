@@ -7,8 +7,8 @@ Rules:
 - Never use `:latest`.
 - Prefer stable or LTS ecosystems.
 - Avoid beta, rc, edge, preview, dev, canary, and nightly tags.
-- Use Microsoft official Dev Container images whenever available.
-- If no Microsoft image exists, use official upstream images.
+- Prefer Microsoft official Dev Container images that match the selected programming language and major version.
+- If no Microsoft image matches the selected language and major version, use official upstream images.
 - Pin explicit version tags in every generated image reference.
 - Prefer Debian bookworm or current stable variants when the ecosystem supports them.
 - Document selected major runtime versions in `docs/DEVELOPMENT.md`.
@@ -18,7 +18,7 @@ Verification guidance:
 - Check official Microsoft Dev Container image tags for supported language stacks.
 - Check official upstream registry tags when using upstream images.
 - Check official language release pages for LTS/stable status when registry naming is ambiguous.
-- Treat an unverifiable version as a blocker and ask the user whether to proceed with a clearly stated pinned fallback.
+- If online verification fails, use the pinned fallback from this policy, avoid unverifiable risky tags, and report that online verification was skipped.
 
 Preferred official sources:
 
