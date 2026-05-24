@@ -9,6 +9,16 @@ Use this skill to deliver a new cloud-native project or an existing cloud-native
 
 For user-facing replies, use at most 2 sentences and 200 characters unless the user asks for detail. Internal artifacts such as docs, task files, and Codex prompts must be complete and explicit.
 
+## Boundary With Devcontainer Project Bootstrap
+
+This skill owns cloud-native delivery governance and real product implementation. It should not duplicate Dev Container bootstrap work already owned by `devcontainer-project-bootstrap`.
+
+Use `devcontainer-project-bootstrap` for project skeleton and local development environment baseline: `.devcontainer/`, Dev Container `Containerfile`, `.devcontainer/compose.yaml`, VS Code config, host user mapping, local service baseline, image/version pinning, and baseline folder creation.
+
+This skill owns `docs/tasks/`, `docs/ai/`, `codex/`, product/API/test/QA docs, real application source code, delivery workflow, final reconciliation, commit, and PR approval flow.
+
+Shared baseline files such as `docs/DEVELOPMENT.md`, `docs/ENVIRONMENT.md`, `docs/DEPLOYMENT.md`, `.env.example`, `.gitignore`, `infra/`, and root application `Containerfile` may originate from bootstrap templates. Reconcile them here only after developer approval when existing content would be modified.
+
 ## Precedence
 
 When rules conflict, apply this order:
@@ -89,6 +99,9 @@ Use these paths at the project root:
 - `docs/ai/`: project-specific AI context, including API summaries, helper catalogs, shared classes, central services, development rules, and documentation update rules.
 - `codex/`: numbered execution prompts only.
 - `src/`: all application source code, package manifests, lockfiles, build/test configuration, and language/framework code for new projects.
+- `src/.env`: local runtime environment file for new projects. It may contain only non-secret placeholders or developer-provided local values and must be ignored by Git.
+- `src/.env.example`: committed environment template for new projects.
+- `src/start.sh`: local start script for new projects when shell scripts are appropriate for the selected stack.
 - `Containerfile`: the only container build file allowed at the project root for new projects.
 - `.gitignore`: approved ignore rules for language/framework standards, OS/editor files, build outputs, caches, logs, coverage, runtime data, local infra data, and secrets.
 
@@ -214,6 +227,8 @@ The required sequence is:
 For a new project, establish the engineering baseline before feature implementation:
 
 - Ask for the project language before creating files. Do not infer the language from examples or preference history.
+- If bootstrap is needed for Dev Container, local Compose services, VS Code settings, user mapping, or base skeleton, delegate that baseline to `devcontainer-project-bootstrap` first, then continue delivery from the generated skeleton.
+- Treat `src/` files marked as bootstrap placeholders as disposable scaffolding, not as existing project architecture. Replace or remove them during real implementation when approved scope requires it.
 - Put all source code, package manifests, lockfiles, build/test configuration, and framework-specific files under `src/`.
 - Keep the project root limited to repository-level docs/config, `Containerfile`, `docs/`, `codex/`, `infra/`, `.gitignore`, `.env.example`, CI config, and other repository-level metadata.
 - Use `Containerfile` at the root for the application container build file. Do not create `Dockerfile`.
@@ -228,7 +243,10 @@ For a new project, establish the engineering baseline before feature implementat
 - Use OpenAPI/Swagger by default unless the developer opts out.
 - Add a health endpoint.
 - Add a development README.
-- Add centralized environment management. Default runtime secrets to `.env` and committed examples to `.env.example`.
+- Add centralized environment management inside `src/`. Create `src/.env` for local runtime values and `src/.env.example` as the committed template. Ensure `src/.env` is included in the proposed `.gitignore` rules before any commit.
+- Do not put real secrets in `src/.env`. Use placeholder values unless the developer explicitly provides local-only values.
+- Add `src/start.sh` for local startup when shell scripts are appropriate. Add additional start scripts only when the selected language/framework needs them.
+- Ask the developer whether to generate IDE-specific run/debug tasks or launch files. Create them only if requested, and prefer debugging from the related unit test.
 - Initialize Git when no repository exists.
 - Scan generated and expected project files before proposing `.gitignore` rules. Include the selected language/framework's standard ignore entries plus OS/editor files, dependency directories, build outputs, caches, logs, coverage reports, local runtime data, local Compose/Kubernetes data, `.env`, and other secret-bearing files.
 - Present the proposed `.gitignore` groups to the developer and add only the approved groups or entries.
@@ -250,6 +268,7 @@ For an existing project:
 
 - Inspect current docs, source layout, build/test tooling, CI/CD, deployment, environment, API docs, logging, observability, health checks, and shared architecture.
 - Inspect current Git state and `.gitignore` coverage when the task touches generated files, local tooling, env files, build outputs, or dependencies.
+- If `src/` contains bootstrap placeholder files, do not treat them as real architecture or domain behavior. Confirm whether they should be replaced, removed, or kept as examples before implementation.
 - Understand the existing project before proposing implementation.
 - Ask whether the feature must be fully integrated with existing architecture or kept as a limited external addition.
 - Follow existing code style, formatting, naming, test patterns, architecture, and deployment conventions.

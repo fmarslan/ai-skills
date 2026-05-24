@@ -7,6 +7,18 @@ description: Use when initializing a new software project or standardizing an ex
 
 Use this skill as a step-by-step wizard for project initialization and development environment bootstrap.
 
+## Boundary With Cloud Engineering Delivery
+
+This skill owns only the project skeleton and local development environment baseline. It must not create real product behavior, domain architecture, API endpoints, business logic, production test suites, delivery task files, or agent orchestration prompts.
+
+When the requested work is a cloud-native product/project delivery, use this skill only for bootstrap artifacts, then let `cloud-engineering-delivery` own product docs, real source code, API design, tests, QA, review, final reconciliation, commit, and PR flow.
+
+Ownership:
+
+- This skill owns `.devcontainer/`, Dev Container `Containerfile`, `.devcontainer/compose.yaml`, VS Code config, host user mapping, local service baseline, bootstrap templates, image/version pinning, and baseline folder creation.
+- `cloud-engineering-delivery` owns `docs/tasks/`, `docs/ai/`, `codex/`, product/API/test/QA docs, real application code, delivery workflow, and commit/PR approval flow.
+- Shared baseline files such as `docs/DEVELOPMENT.md`, `docs/ENVIRONMENT.md`, `docs/DEPLOYMENT.md`, `.env.example`, `.gitignore`, `infra/`, and root application `Containerfile` may be created as bootstrap placeholders/templates here, but final project-specific reconciliation belongs to `cloud-engineering-delivery`.
+
 ## Wizard Behavior
 
 Ask one critical question at a time. Keep questions short and clear. Do not generate files until all critical decisions are complete.
@@ -35,7 +47,7 @@ Before generation, briefly summarize the defaults that will be applied for image
 6. Generate a clean project structure using `Containerfile` and `compose.yaml`.
 7. During project generation, prepare host-side writable paths and `.devcontainer/.env` with this skill's bundled `scripts/prepare-devcontainer-host.sh <project-root>` when the local host supports it. Do not generate project-local host init scripts and do not rely on Dev Container lifecycle scripts for host preparation.
 8. If generation would overwrite existing files, list the conflicting files and ask the user whether to overwrite, skip, or preserve them with backups.
-9. Generate meaningful starter content for all required files.
+9. Generate meaningful starter content for all required files, but keep application source under `src/` as placeholder-only content.
 10. Validate JSON and YAML syntax when tools are available.
 11. Summarize generated files, assumptions, overrides, and any skipped online verification.
 
@@ -73,6 +85,8 @@ If reference files disagree, prefer `references/version-policy.md` for image pin
 - Use official default ports unless the user explicitly overrides them.
 - Use healthchecks when useful.
 - Put all stack-specific code, package manifests, lockfiles, and build/test configuration under `src/`.
+- Under `src/`, generate only the minimum language/framework placeholder required to validate the development environment. Do not generate real application implementation, real API endpoints, business logic, domain modules, or production test suites.
+- Every placeholder source file must start with a comment stating that it is a bootstrap placeholder, that real application code is owned by `cloud-engineering-delivery`, and that the file can be replaced or removed during delivery.
 - Keep the repository root limited to standardized bootstrap folders and repository-level docs/config.
 
 ## Reference Map
