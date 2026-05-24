@@ -38,6 +38,8 @@ When rules conflict, apply this order:
 - If online verification cannot run, record the missing check and require explicit developer risk acceptance before adding the dependency.
 - If required tooling is unavailable or fails, capture the error output, try the smallest reproducible local command, list missing environment variables/services, record the gap in the task file, and pause unless the developer explicitly waives the requirement.
 - Commit and PR creation are allowed only after explicit developer approval.
+- For new projects, initialize Git if no repository exists. If a repository already exists, do not reinitialize it; inspect current status first.
+- Do not add or modify `.gitignore` without developer approval. Propose ignored paths first, grouped by language/framework, OS/editor, build artifacts, dependency caches, logs, test coverage, runtime data, local infra data, and secrets.
 
 ## Start Workflow
 
@@ -47,6 +49,8 @@ Then determine whether the request is:
 
 - **New Project Flow**: creating a new project or service.
 - **Existing Project Feature Flow**: adding or changing behavior in an existing project.
+
+For New Project Flow, always ask for the project language before generating files.
 
 If the user does not state the target directory, ask which folder to work in. For monorepos or multi-repo work, ask whether the change is scoped to one folder/repo or crosses repos; if cross-repo, require the affected repos and owners before planning.
 
@@ -84,6 +88,9 @@ Use these paths at the project root:
 - `docs/tasks/completed/`: completed task records.
 - `docs/ai/`: project-specific AI context, including API summaries, helper catalogs, shared classes, central services, development rules, and documentation update rules.
 - `codex/`: numbered execution prompts only.
+- `src/`: all application source code, package manifests, lockfiles, build/test configuration, and language/framework code for new projects.
+- `Containerfile`: the only container build file allowed at the project root for new projects.
+- `.gitignore`: approved ignore rules for language/framework standards, OS/editor files, build outputs, caches, logs, coverage, runtime data, local infra data, and secrets.
 
 Do not use `codex/completed/`. Completed task records move to `docs/tasks/completed/`.
 
@@ -206,6 +213,10 @@ The required sequence is:
 
 For a new project, establish the engineering baseline before feature implementation:
 
+- Ask for the project language before creating files. Do not infer the language from examples or preference history.
+- Put all source code, package manifests, lockfiles, build/test configuration, and framework-specific files under `src/`.
+- Keep the project root limited to repository-level docs/config, `Containerfile`, `docs/`, `codex/`, `infra/`, `.gitignore`, `.env.example`, CI config, and other repository-level metadata.
+- Use `Containerfile` at the root for the application container build file. Do not create `Dockerfile`.
 - Create `docs/` with product, architecture, API, development, deployment, environment, testing, and operations documentation.
 - Create `docs/ai/` with project-specific AI context:
   - API docs and use cases.
@@ -218,6 +229,9 @@ For a new project, establish the engineering baseline before feature implementat
 - Add a health endpoint.
 - Add a development README.
 - Add centralized environment management. Default runtime secrets to `.env` and committed examples to `.env.example`.
+- Initialize Git when no repository exists.
+- Scan generated and expected project files before proposing `.gitignore` rules. Include the selected language/framework's standard ignore entries plus OS/editor files, dependency directories, build outputs, caches, logs, coverage reports, local runtime data, local Compose/Kubernetes data, `.env`, and other secret-bearing files.
+- Present the proposed `.gitignore` groups to the developer and add only the approved groups or entries.
 - Add logging configuration with format and levels.
 - Add metrics, tracing, and structured error responses by default using existing framework/project capabilities when possible. If new dependencies, services, or runtime infrastructure are needed, get explicit developer approval first.
 - Add basic CI pipeline.
@@ -235,6 +249,7 @@ For a new project, establish the engineering baseline before feature implementat
 For an existing project:
 
 - Inspect current docs, source layout, build/test tooling, CI/CD, deployment, environment, API docs, logging, observability, health checks, and shared architecture.
+- Inspect current Git state and `.gitignore` coverage when the task touches generated files, local tooling, env files, build outputs, or dependencies.
 - Understand the existing project before proposing implementation.
 - Ask whether the feature must be fully integrated with existing architecture or kept as a limited external addition.
 - Follow existing code style, formatting, naming, test patterns, architecture, and deployment conventions.
@@ -243,6 +258,7 @@ For an existing project:
 - Evaluate the project against the New Project Flow standards.
 - Do not block the requested feature solely to create missing standards unless the missing standard is required for safe delivery.
 - At the end, briefly report missing standards.
+- If `.gitignore` is missing or incomplete, report the gaps at the end and update it only with developer approval.
 - Create missing standards only if the developer requests and approves that follow-up work.
 
 ## Testing And Debugging
@@ -282,9 +298,10 @@ Before completion:
 1. Ensure all task files are updated and completed tasks are under `docs/tasks/completed/`.
 2. Ensure docs reflect final behavior, APIs, env, logging, observability, infrastructure, and development/debug instructions.
 3. Ensure `docs/ai/` reflects current APIs, helpers, shared classes, central services, and rules.
-4. Ensure all required test results are recorded.
-5. Ensure skipped checks and missing tools are explicitly documented.
-6. Prepare a commit message.
-7. Ask the developer for commit approval.
-8. If approved, commit the changes.
-9. Ask the developer whether to prepare or open a PR.
+4. Ensure `.gitignore` contains only developer-approved ignore rules and covers language/framework standards, generated artifacts, local data, and secrets.
+5. Ensure all required test results are recorded.
+6. Ensure skipped checks and missing tools are explicitly documented.
+7. Prepare a commit message.
+8. Ask the developer for commit approval.
+9. If approved, commit the changes.
+10. Ask the developer whether to prepare or open a PR.
