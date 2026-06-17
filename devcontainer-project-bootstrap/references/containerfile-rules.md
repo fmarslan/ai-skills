@@ -17,18 +17,19 @@ Rules:
 Development image baseline:
 
 - `.devcontainer/Containerfile` is the development image.
-- Define `ARG DEV_USERNAME=dev`, `ARG DEV_GROUPNAME=dev`, `ARG DEV_UID=1000`, and `ARG DEV_GID=1000`.
+- Define `ARG DEV_UID=1000` and `ARG DEV_GID=1000`.
+- Always use `dev` as the development username and group name.
 - Start as `root`.
-- If a group already exists with `DEV_GID`, safely rename it to `DEV_GROUPNAME` unless that name is already used by another group.
-- If `DEV_GROUPNAME` already exists with a different GID, fail clearly.
-- If a user already exists with `DEV_UID`, safely rename it to `DEV_USERNAME` unless that name is already used by another user.
-- If `DEV_USERNAME` already exists with a different UID, fail clearly.
+- If a group already exists with `DEV_GID`, safely rename it to `dev` unless that name is already used by another group.
+- If group `dev` already exists with a different GID, fail clearly.
+- If a user already exists with `DEV_UID`, safely rename it to `dev` unless that name is already used by another user.
+- If user `dev` already exists with a different UID, fail clearly.
 - If UID/GID are free, create the group and user.
 - Never create a second user or group with the same UID/GID.
-- Move or create the home directory at `/home/${DEV_USERNAME}`.
-- Create `/home/${DEV_USERNAME}/.codex`, `.cache`, and `.config`.
-- Ensure `/home/${DEV_USERNAME}` is owned by `${DEV_UID}:${DEV_GID}`.
-- Switch to `USER ${DEV_USERNAME}` at the end.
+- Move or create the home directory at `/home/dev`.
+- Create `/home/dev/.codex`, `.cache`, and `.config`.
+- Ensure `/home/dev` is owned by `${DEV_UID}:${DEV_GID}`.
+- Switch to `USER dev` at the end.
 - In Microsoft Dev Container images where `vscode:1000:1000` exists, rename/reuse that account instead of creating another `1000:1000` account.
 - Keep the username consistent with `devcontainer.json`, `.devcontainer/compose.yaml`, and mount targets.
 

@@ -43,9 +43,9 @@ Before generation, briefly summarize the defaults that will be applied for image
 2. Ask missing critical architecture questions one at a time.
 3. Read the relevant references for the chosen stack and requested services.
 4. Verify current stable/LTS image versions from official sources before pinning any image tag. If online verification fails, use `references/version-policy.md` as the fallback, avoid unverifiable risky tags, and report that online verification was skipped.
-5. Generate `.devcontainer/Containerfile` so the development user is aligned from `DEV_USERNAME`, `DEV_GROUPNAME`, `DEV_UID`, and `DEV_GID` without creating duplicate UID/GID entries.
+5. Generate `.devcontainer/Containerfile` so the development user and group are always named `dev`, while their UID and GID match the detected host user when the host provides deterministic Unix UID/GID values. Do not create duplicate UID/GID entries.
 6. Generate a clean project structure using `Containerfile` and `compose.yaml`.
-7. During project generation, prepare host-side writable paths and `.devcontainer/.env` with this skill's bundled `scripts/prepare-devcontainer-host.sh <project-root>` when the local host supports it. Do not generate project-local host init scripts and do not rely on Dev Container lifecycle scripts for host preparation.
+7. During project generation, prepare host-side writable service data paths and write detected UID/GID values directly into generated Dev Container files with this skill's bundled `scripts/prepare-devcontainer-host.sh <project-root>` when the local host supports it. Do not generate `.env` files for Dev Container configuration, do not generate project-local host init scripts, and do not rely on Dev Container lifecycle scripts for host preparation.
 8. If generation would overwrite existing files, list the conflicting files and ask the user whether to overwrite, skip, or preserve them with backups.
 9. Generate meaningful starter content for all required files, but keep application source under `src/` as placeholder-only content.
 10. Validate JSON and YAML syntax when tools are available.
@@ -69,10 +69,11 @@ If reference files disagree, prefer `references/version-policy.md` for image pin
 - Use `.devcontainer/compose.yaml`, not `docker-compose.yml`.
 - Use `Containerfile`, never `Dockerfile`.
 - Use non-root container users.
-- Support `DEV_USERNAME`, `DEV_GROUPNAME`, `DEV_UID`, and `DEV_GID` for host-aligned container users.
-- Default `DEV_USERNAME` and `DEV_GROUPNAME` to `dev`, and `DEV_UID` and `DEV_GID` to `1000`, unless the user supplies `DEV_*` values.
-- Mount Codex automatically as `../data/.codex:/home/${DEV_USERNAME:-dev}/.codex:cached`; this source path is resolved from `.devcontainer/compose.yaml` and points to `project-root/data/.codex`.
-- Install the reusable skill repository automatically into `/home/${DEV_USERNAME:-dev}/.codex/skills/fmarslan-ai-skills` from `https://github.com/fmarslan/ai-skills`.
+- Use `dev` as the development username and group name in every generated Dev Container.
+- Align the container `dev` user and `dev` group UID/GID with the host user during image build when deterministic host UID/GID values are available; otherwise default both to `1000`.
+- Write UID/GID values directly into `.devcontainer/compose.yaml` build args and runtime `user`; do not rely on `.env` interpolation for Dev Container user mapping.
+- Mount Codex automatically with a Docker named volume at `codex-home:/home/dev/.codex`.
+- Install the reusable skill repository automatically into `/home/dev/.codex/skills/fmarslan-ai-skills` from `https://github.com/fmarslan/ai-skills`.
 - Do not mount host secrets or credential directories automatically.
 - Mount the project root as the workspace folder.
 - Prefer Microsoft official Dev Container images that match the selected programming language and major version.
@@ -80,7 +81,7 @@ If reference files disagree, prefer `references/version-policy.md` for image pin
 - Never use `:latest` tags.
 - Pin explicit stable/LTS versions.
 - Avoid beta, rc, edge, preview, dev, canary, and nightly versions.
-- Generate application environment templates as `.env.example`, never application `.env` files. The only generated `.env` exception is `.devcontainer/.env`, which stores local Dev Container user-mapping values prepared by the bundled host-preparation helper.
+- Generate application environment templates as `.env.example`, never application `.env` files. Do not generate `.devcontainer/.env`; Dev Container user mapping must be encoded directly in generated Compose and Containerfile inputs.
 - Persist all local service data under `./data/<service-name>`.
 - Use official default ports unless the user explicitly overrides them.
 - Use healthchecks when useful.
@@ -112,7 +113,6 @@ Use templates from `assets/templates/` as starting points:
 - `docs/`: `DEVELOPMENT.md`, `CONTRIBUTING.md`, `DEPLOYMENT.md`, `ENVIRONMENT.md`
 - `vscode/`: `extensions.json`, `tasks.json`, `launch.json`
 - `devcontainer/`: `devcontainer.json`, `compose.yaml`, `Containerfile`
-- `devcontainer/`: optional `.env.example`
 - `infra/`: `compose.yaml` and optional `kube/` manifests
 - Root templates: `README.md`, `.env.example`, `.gitignore`, optional production `Containerfile`
 

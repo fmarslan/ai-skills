@@ -8,7 +8,6 @@ project-root/
     devcontainer.json
     compose.yaml
     Containerfile
-    .env.example
   .vscode/
     extensions.json
     tasks.json
@@ -49,7 +48,7 @@ Rules:
 - Put all stack-specific code, package manifests, lockfiles, and build/test configuration under `src/`.
 - Do not place application source files, language package manifests, lockfiles, or stack-specific tool configuration in the repository root.
 - Root files are reserved for the standardized bootstrap surface only: `.devcontainer/`, `.vscode/`, `data/`, `docs/`, `infra/`, `src/`, `README.md`, `.env.example`, `.gitignore`, and optional deployment `Containerfile`.
-- Ignore generated `.devcontainer/.env`; commit `.devcontainer/.env.example` when useful.
+- Do not generate `.devcontainer/.env` or `.devcontainer/.env.example`.
 - Do not generate project-local host init scripts under `.devcontainer/`. Host preparation is done by the skill during project creation.
 - Keep generated names lowercase and deterministic.
 - Do not create unnecessary infrastructure.

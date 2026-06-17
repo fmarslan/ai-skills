@@ -12,6 +12,6 @@ Stack-specific code, package manifests, lockfiles, and build/test configuration 
 
 ## Environment
 
-Copy values from `.env.example` into your local environment manager or a local `.env` file when the selected stack requires one. Do not commit `.env`.
+Use `.env.example` as the application environment contract. Do not commit `.env` files or use `.env` files for Dev Container configuration.
 
 See `docs/ENVIRONMENT.md` for the full variable contract.

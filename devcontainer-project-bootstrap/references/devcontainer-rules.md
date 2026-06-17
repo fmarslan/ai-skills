@@ -14,34 +14,30 @@ Required behavior:
 - The primary service is named `workspace`.
 - The workspace folder is the mounted project root.
 - The project root is mounted into the container as the workspace.
-- The Codex directory is mounted as `../data/.codex:/home/${DEV_USERNAME:-dev}/.codex:cached`.
-- The reusable skill repository is installed into `/home/${DEV_USERNAME:-dev}/.codex/skills/fmarslan-ai-skills`.
+- The Codex directory is mounted as a Docker named volume at `codex-home:/home/dev/.codex`.
+- The reusable skill repository is installed into `/home/dev/.codex/skills/fmarslan-ai-skills`.
 - Host secrets and credential directories are not mounted automatically.
-- The container user is the non-root user produced from `DEV_USERNAME`, `DEV_GROUPNAME`, `DEV_UID`, and `DEV_GID`.
+- The container user is the non-root `dev` user produced from host-aligned UID/GID values.
 
-`../data/.codex` is resolved from `.devcontainer/compose.yaml`, so it points to `project-root/data/.codex`.
+Codex state must not be bind-mounted from the project tree. Use the `codex-home` named volume so Codex home data is persisted by Docker without creating `data/.codex` in the repository.
 
 ## Host-Aligned User Policy
 
-Generated Dev Containers must support these values through `.devcontainer/.env`, Compose build args, and runtime environment:
+Generated Dev Containers must use this identity:
 
-- `DEV_USERNAME`
-- `DEV_GROUPNAME`
-- `DEV_UID`
-- `DEV_GID`
+- Username: `dev`
+- Group name: `dev`
 
-Defaults:
+Generated Dev Containers must support these values through Compose build args and runtime `user`, with values written directly into generated files:
 
-- `DEV_USERNAME=dev`
-- `DEV_GROUPNAME=dev`
 - `DEV_UID=1000`
 - `DEV_GID=1000`
 
 Linux and WSL Linux filesystem:
 
-- Use the active host user values from `id -un`, `id -gn`, `id -u`, and `id -g`.
+- Use the active host UID/GID values from `id -u` and `id -g`.
+- Keep the container username and group name as `dev` even when the host username or group name differs.
 - UID/GID bind mount permissions matter directly.
-- `data/.codex` must be owned by the active host UID/GID.
 
 WSL on `/mnt/c/...`:
 
@@ -61,15 +57,17 @@ Windows without WSL:
 - Use default container values `dev:dev 1000:1000`.
 - Verify writability from inside the container when needed.
 
+Do not generate `.devcontainer/.env` or require `.env` files for Dev Container configuration.
+
 ## Codex Skill Repository
 
 Every generated project must make `https://github.com/fmarslan/ai-skills` available inside the Dev Container.
 
 Rules:
 
-- Use `/home/${DEV_USERNAME}/.codex/skills/fmarslan-ai-skills` as the container path.
-- Because `/home/${DEV_USERNAME}/.codex` is mounted from `project-root/data/.codex`, the host-side persisted path is `project-root/data/.codex/skills/fmarslan-ai-skills`.
-- Add a safe `postCreateCommand` that creates `/home/${DEV_USERNAME}/.codex/skills` and then clones the repository if missing.
+- Use `/home/dev/.codex/skills/fmarslan-ai-skills` as the container path.
+- Because `/home/dev/.codex` is mounted from the `codex-home` Docker named volume, the data is persisted by Docker rather than in `project-root/data/.codex`.
+- Add a safe `postCreateCommand` that creates `/home/dev/.codex/skills` and then clones the repository if missing.
 - If the repository already exists and is a git checkout, update it with `git pull --ff-only`.
 - If the target path exists but is not a git checkout, leave it untouched and print a clear message.
 - Do not require a GitHub token for this public repository.
@@ -83,14 +81,14 @@ Generation rules:
 
 1. Start from the selected pinned base image.
 2. Switch to `root` in `.devcontainer/Containerfile`.
-3. Resolve or create the target group from `DEV_GROUPNAME` and `DEV_GID`.
-4. Resolve or create the target user from `DEV_USERNAME` and `DEV_UID`.
+3. Resolve or create the target group named `dev` from `DEV_GID`.
+4. Resolve or create the target user named `dev` from `DEV_UID`.
 5. Rename/reuse existing UID/GID entries instead of creating duplicates.
 6. Grant passwordless sudo only when development tooling installation requires it.
-7. Set `USER ${DEV_USERNAME}` at the end of `.devcontainer/Containerfile`.
-8. Set Compose `user` to `"${DEV_UID:-1000}:${DEV_GID:-1000}"`.
-9. Mount all home-directory paths under `/home/${DEV_USERNAME:-dev}`.
-10. Keep `remoteUser` literal. During project generation, write the detected username when available; otherwise use the default `"dev"`.
+7. Set `USER dev` at the end of `.devcontainer/Containerfile`.
+8. Set Compose `user` to the generated UID/GID string, such as `"1000:1000"` or the detected host UID/GID.
+9. Mount all home-directory paths under `/home/dev`.
+10. Keep `remoteUser` literal as `"dev"`.
 
 `scripts/detect-container-user.sh` is kept as a diagnostic helper for inspecting selected images, not as the primary generation path.
 
@@ -98,9 +96,8 @@ Do not add automatic mounts for host secrets or credential directories such as `
 
 ## Mount Source Preflight
 
-Writable bind mount source directories must exist before container startup.
+Writable bind mount source directories for service data must exist before container startup.
 
-- Create `data/.codex` before the Dev Container starts.
 - Create `data/<service-name>` before service containers start.
 - On Linux and WSL Linux filesystems, user-writable mount sources must be owned by the active host UID/GID.
 - Do not chown service-owned directories to the development user unless service image documentation requires that.
@@ -108,19 +105,19 @@ Writable bind mount source directories must exist before container startup.
 
 Generated projects must include:
 
-- `.devcontainer/.env.example` with default values.
-- `.gitignore` entry for `.devcontainer/.env`.
+- No `.devcontainer/.env` or `.devcontainer/.env.example` for Dev Container configuration.
+- `.gitignore` entries for local application `.env` files when application environment examples are generated.
 
 Generated projects must not include project-local host init scripts. The skill performs host preparation during project creation using its own bundled helper, `scripts/prepare-devcontainer-host.sh`, or equivalent direct actions.
 
 ## Codex Writability Check
 
-Add a safe post-create check for `/home/${DEV_USERNAME}/.codex`.
+Add a safe post-create check for `/home/dev/.codex`.
 
 - Verify that the directory exists.
 - Verify that the active user can write to it.
 - If not writable, print an actionable error:
-  - Linux/WSL Linux filesystem: suggest `sudo chown -R "$DEV_UID:$DEV_GID" data/.codex`.
-  - Windows/macOS: suggest checking Docker Desktop file sharing and mount path configuration.
+  - Suggest removing and recreating the `codex-home` named volume if ownership was corrupted.
+  - Windows/macOS: suggest checking Docker Desktop volume and runtime user configuration.
 
 Use `postCreateCommand` only for safe, repeatable dependency installation and Codex skill repository bootstrap.

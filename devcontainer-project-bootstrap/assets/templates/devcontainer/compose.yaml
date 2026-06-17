@@ -4,17 +4,18 @@ services:
       context: ..
       dockerfile: .devcontainer/Containerfile
       args:
-        DEV_USERNAME: ${DEV_USERNAME:-dev}
-        DEV_GROUPNAME: ${DEV_GROUPNAME:-dev}
-        DEV_UID: ${DEV_UID:-1000}
-        DEV_GID: ${DEV_GID:-1000}
-    user: "${DEV_UID:-1000}:${DEV_GID:-1000}"
+        DEV_UID: "1000"
+        DEV_GID: "1000"
+    user: "1000:1000"
     environment:
-      DEV_USERNAME: ${DEV_USERNAME:-dev}
-      DEV_GROUPNAME: ${DEV_GROUPNAME:-dev}
-      DEV_UID: ${DEV_UID:-1000}
-      DEV_GID: ${DEV_GID:-1000}
+      DEV_USERNAME: dev
+      DEV_GROUPNAME: dev
+      DEV_UID: "1000"
+      DEV_GID: "1000"
     volumes:
       - ..:/workspaces/${LOCAL_WORKSPACE_FOLDER_BASENAME:-project}:cached
-      - ../data/.codex:/home/${DEV_USERNAME:-dev}/.codex:cached
+      - codex-home:/home/dev/.codex
     command: sleep infinity
+
+volumes:
+  codex-home:

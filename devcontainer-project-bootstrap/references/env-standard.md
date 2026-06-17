@@ -5,7 +5,7 @@ Generate application environment examples as `.env.example` only.
 Rules:
 
 - Never generate application `.env` files.
-- `.devcontainer/.env` is allowed only for local Dev Container user-mapping values prepared by the bundled host-preparation helper.
+- Never generate `.devcontainer/.env`; Dev Container user mapping must not depend on `.env` files.
 - Never generate real secrets.
 - Use uppercase snake case variable names.
 - Group variables by application and service.

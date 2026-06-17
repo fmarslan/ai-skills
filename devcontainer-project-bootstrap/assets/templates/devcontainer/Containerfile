@@ -1,13 +1,13 @@
 FROM mcr.microsoft.com/devcontainers/base:1-bookworm
 
-ARG DEV_USERNAME=dev
-ARG DEV_GROUPNAME=dev
 ARG DEV_UID=1000
 ARG DEV_GID=1000
 
 USER root
 
 RUN set -eux; \
+    DEV_USERNAME=dev; \
+    DEV_GROUPNAME=dev; \
     existing_group="$(getent group "${DEV_GID}" | cut -d: -f1 || true)"; \
     if [ -n "${existing_group}" ]; then \
       if [ "${existing_group}" != "${DEV_GROUPNAME}" ]; then \
@@ -45,4 +45,4 @@ RUN set -eux; \
     mkdir -p "/home/${DEV_USERNAME}/.codex" "/home/${DEV_USERNAME}/.cache" "/home/${DEV_USERNAME}/.config"; \
     chown -R "${DEV_UID}:${DEV_GID}" "/home/${DEV_USERNAME}"
 
-USER ${DEV_USERNAME}
+USER dev
