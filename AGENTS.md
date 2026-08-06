@@ -23,3 +23,4 @@ This repository contains reusable Codex skills for project initialization and de
 - `cloud-engineering-delivery`: Senior engineering workflow for cloud-native projects and features, including scope approval, architecture review, tests, QA, infrastructure, and commit or PR preparation.
 - `devcontainer-project-bootstrap`: Step-by-step wizard for initializing software projects with standardized Docker Compose based Dev Container environments.
 - `erpnext-agent`: Operates ERPNext or Frappe sites through user-provided URL and API credentials for querying records, inspecting DocTypes, mutating documents, and diagnosing API access.
+- `prompt-refiner-agent`: Refines a raw user prompt into a safe, detailed English execution prompt, preserves the original response language requirement, prevents self-recursion, and routes execution to the appropriate skill after confirmation.
